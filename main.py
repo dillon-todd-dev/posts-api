@@ -34,3 +34,11 @@ while True:
 @app.get('/')
 def root():
     return {'message': 'hello, world!'}
+
+
+@app.get('/posts')
+def get_posts():
+    select_query = "SELECT * FROM posts;"
+    cursor.execute(select_query)
+    posts = cursor.fetchall()
+    return {'data': posts}
