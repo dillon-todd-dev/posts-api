@@ -1,9 +1,10 @@
+import os
+import time
+import psycopg2
 from fastapi import FastAPI
 from dotenv import load_dotenv
-import os
-import psycopg2
+from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
-import time
 
 
 app = FastAPI()
@@ -29,6 +30,12 @@ while True:
     except (Exception, psycopg2.Error) as error:
         print(f'failed to connect to db: {error}')
         time.sleep(5)
+
+
+class Post(BaseModel):
+    title: str
+    content: str
+    published: bool = True
 
 
 @app.get('/')
