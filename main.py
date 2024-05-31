@@ -1,7 +1,7 @@
 import os
 import time
 import psycopg2
-from fastapi import FastAPI
+from fastapi import FastAPI, status, HTTPException
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
@@ -51,7 +51,18 @@ def get_posts():
     return {'data': posts}
 
 
-@app.post('/posts')
+@app.get('/posts/{post_id}')
+def get_post_by_id(post_id: int):
+    select_query = "SELECT * FROM posts WHERE id = %s;"
+    cursor.execute(select_query, (str(post_id)))
+    post = cursor.fetchone()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"can't find post with id: {post_id}")
+    return {'data': post}
+
+
+@app.post('/posts', status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):
     insert_query = "INSERT INTO posts(title, content, published) VALUES(%s, %s, %s) RETURNING *;"
     cursor.execute(insert_query, (post.title, post.content, post.published))
