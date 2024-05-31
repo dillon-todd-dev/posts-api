@@ -54,7 +54,7 @@ def get_posts():
 @app.get('/posts/{post_id}')
 def get_post_by_id(post_id: int):
     select_query = "SELECT * FROM posts WHERE id = %s;"
-    cursor.execute(select_query, (str(post_id)))
+    cursor.execute(select_query, (str(post_id),))
     post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -71,10 +71,22 @@ def create_post(post: Post):
     return {'data': new_post}
 
 
+@app.put('/posts/{post_id}')
+def update_post(post_id: int, post: Post):
+    update_query = "UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *;"
+    cursor.execute(update_query, (post.title, post.content, post.published, str(post_id),))
+    updated_post = cursor.fetchone()
+    if not updated_post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"can't find post with id: {post_id}")
+    conn.commit()
+    return {'data': updated_post}
+
+
 @app.delete('/posts/{post_id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int):
     delete_query = "DELETE FROM posts WHERE id = %s RETURNING *;"
-    cursor.execute(delete_query, (str(post_id)))
+    cursor.execute(delete_query, (str(post_id),))
     deleted_post = cursor.fetchone()
     if not deleted_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
