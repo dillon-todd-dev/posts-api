@@ -49,3 +49,12 @@ def get_posts():
     cursor.execute(select_query)
     posts = cursor.fetchall()
     return {'data': posts}
+
+
+@app.post('/posts')
+def create_post(post: Post):
+    insert_query = "INSERT INTO posts(title, content, published) VALUES(%s, %s, %s) RETURNING *;"
+    cursor.execute(insert_query, (post.title, post.content, post.published))
+    new_post = cursor.fetchone()
+    conn.commit()
+    return {'data': new_post}
